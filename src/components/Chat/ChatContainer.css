@@ -1,0 +1,67 @@
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.messages-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  scroll-behavior: smooth;
+}
+
+.messages-list {
+  max-width: 850px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px;
+  animation: messagesListFadeIn 0.6s ease-out;
+}
+
+@keyframes messagesListFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.error-banner {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.15));
+  border-top: 2px solid rgba(239, 68, 68, 0.5);
+  padding: 14px 24px;
+  text-align: center;
+  animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 -4px 20px rgba(239, 68, 68, 0.2);
+}
+
+.error-banner span {
+  color: #fca5a5;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .messages-list {
+    padding: 16px;
+  }
+}
