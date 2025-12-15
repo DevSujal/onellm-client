@@ -253,6 +253,10 @@
 }
 
 @media (max-width: 640px) {
+  .model-selector {
+    flex-shrink: 0;
+  }
+  
   .model-selector-btn {
     min-width: unset;
     padding: 6px 10px;
@@ -264,15 +268,25 @@
   
   .model-dropdown {
     position: fixed;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    border-radius: 16px 16px 0 0;
-    max-height: 70vh;
+    top: 70px;
+    bottom: auto;
+    left: 8px;
+    right: 8px;
+    border-radius: 12px;
+    max-height: calc(100vh - 90px);
+    min-width: unset;
+    width: auto;
   }
   
   .model-list {
-    max-height: calc(70vh - 80px);
+    max-height: calc(100vh - 170px);
+  }
+  
+  .model-search-container {
+    padding: 10px;
+  }
+  
+  .model-option {
+    padding: 12px 14px;
   }
 }
