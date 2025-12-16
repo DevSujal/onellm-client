@@ -278,7 +278,7 @@ export const searchWithPerplexity = async (query) => {
     },
     body: JSON.stringify({
       query: query,
-      max_results: 2,
+      max_results: 5,
     }),
   })
 
