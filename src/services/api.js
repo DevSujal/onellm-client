@@ -93,7 +93,7 @@ export const checkHealth = async () => {
 
 // Send a chat completion request to OneLLM
 export const sendChatMessage = async (messages, model, apiKeys, options = {}) => {
-  const { temperature = 0.7, maxTokens = 1000000, stream = false, onChunk, baseUrls = {} } = options
+  const { temperature = 0.7, maxTokens = 32768, stream = false, onChunk, baseUrls = {} } = options
 
   // Get the required API key for this model
   const keyName = getRequiredKeyForModel(model)

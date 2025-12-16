@@ -89,11 +89,11 @@ export const FALLBACK_MODELS = [
   { id: 'freellm/TinyLlama/TinyLlama-1.1B-Chat-v1.0', name: 'TinyLlama 1.1B', provider: 'freellm', free: true, description: 'Fast, lightweight' },
   { id: 'freellm/Qwen/Qwen2.5-0.5B-Instruct', name: 'Qwen 0.5B', provider: 'freellm', free: true, description: 'Ultra-fast' },
   { id: 'freellm/Qwen/Qwen2.5-1.5B-Instruct', name: 'Qwen 1.5B', provider: 'freellm', free: true, description: 'Balanced' },
-  
+
   // RWKV7 models (free with sk-test API key)
   { id: 'hf/rwkv7-g1a4-2.9b-20251118-ctx8192', name: 'RWKV7 2.9B', provider: 'rwkv', free: true, description: 'Standard chat' },
   { id: 'hf/rwkv7-g1a4-2.9b-20251118-ctx8192:thinking', name: 'RWKV7 2.9B Thinking', provider: 'rwkv', free: true, description: 'Chain-of-thought reasoning' },
-  
+
   { id: 'ollama/gemma3:270m', name: 'Gemma3 270M', provider: 'ollama', free: true, description: 'Google lightweight' },
   { id: 'ollama/gemma3:4b', name: 'Gemma3 4B', provider: 'ollama', free: true, description: 'Google Balanced' },
   { id: 'ollama/mistral:7b', name: 'Mistral 7B', provider: 'ollama', free: true, description: 'Powerful open model' },
@@ -102,23 +102,23 @@ export const FALLBACK_MODELS = [
 // Helper to extract provider from model ID
 export const getProviderFromModelId = (modelId) => {
   if (!modelId) return null
-  
+
   // Check explicit provider prefixes
   for (const provider of Object.keys(PROVIDERS)) {
     if (modelId.startsWith(`${provider}/`)) {
       return provider
     }
   }
-  
+
   // Check for RWKV models (special case - no prefix)
   if (modelId.includes('rwkv')) {
     return 'rwkv'
   }
-  
+
   // Try to match from fallback models
   const fallback = FALLBACK_MODELS.find(m => m.id === modelId)
   if (fallback) return fallback.provider
-  
+
   return null
 }
 
