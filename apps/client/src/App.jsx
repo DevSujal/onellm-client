@@ -1,15 +1,20 @@
 import { useState } from 'react'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import useChat from './hooks/useChat'
 import Sidebar from './components/Sidebar/Sidebar'
 import ChatContainer from './components/Chat/ChatContainer'
 import ModelSelector from './components/Settings/ModelSelector'
 import SettingsModal from './components/Settings/SettingsModal'
-import { MenuIcon, SettingsIcon } from './components/Icons'
+import AuthPage from './components/Auth/AuthPage'
+import Profile from './components/Auth/Profile'
+import { MenuIcon, SettingsIcon, UserIcon } from './components/Icons'
 import './App.css'
 
-function App() {
+function AppContent() {
+  const { isAuthenticated, loading, user } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   
   const {
     conversations,
@@ -35,6 +40,21 @@ function App() {
     updateApiKey,
     updateBaseUrl,
   } = useChat()
+
+  // Show loading spinner while checking auth
+  if (loading) {
+    return (
+      <div className="app loading-screen">
+        <div className="loading-spinner"></div>
+        <p>Loading...</p>
+      </div>
+    )
+  }
+
+  // Show auth page if not authenticated
+  if (!isAuthenticated) {
+    return <AuthPage />
+  }
 
   return (
     <div className="app">
@@ -97,6 +117,13 @@ function App() {
           
           <div className="header-right">
             <button 
+              className="profile-btn"
+              onClick={() => setProfileOpen(true)}
+              title={`@${user?.username}`}
+            >
+              <UserIcon />
+            </button>
+            <button 
               className="settings-btn"
               onClick={() => setSettingsOpen(true)}
             >
@@ -128,7 +155,20 @@ function App() {
         onUpdateApiKey={updateApiKey}
         onUpdateBaseUrl={updateBaseUrl}
       />
+
+      <Profile 
+        isOpen={profileOpen}
+        onClose={() => setProfileOpen(false)}
+      />
     </div>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
 

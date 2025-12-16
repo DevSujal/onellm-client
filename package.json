@@ -1,30 +1,21 @@
 {
-  "name": "codespaces-blank",
+  "name": "onellm",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "description": "OneLLM - Multi-provider LLM Chat Application",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-markdown": "^10.1.0",
-    "react-syntax-highlighter": "^16.1.0",
-    "remark-gfm": "^4.0.1"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/react": "^19.2.5",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "vite": "^7.2.4"
+    "dev": "npm run dev:server & npm run dev:client",
+    "dev:client": "npm run dev -w @onellm/client",
+    "dev:server": "npm run dev -w @onellm/server",
+    "build": "npm run build -w @onellm/client",
+    "start": "NODE_ENV=production node apps/server/index.js",
+    "render-build": "npm install && npm run db:generate && npm run build",
+    "db:push": "npm run db:push -w @onellm/server",
+    "db:migrate": "npm run db:migrate -w @onellm/server",
+    "db:studio": "npm run db:studio -w @onellm/server",
+    "db:generate": "npm run db:generate -w @onellm/server"
   }
 }
