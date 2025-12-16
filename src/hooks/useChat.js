@@ -11,7 +11,7 @@ export const useChat = () => {
   const [activeConvoId, setActiveConvoId] = useLocalStorage('activeConvoId', null)
   const [apiKeys, setApiKeys] = useLocalStorage('apiKeys', {})
   const [baseUrls, setBaseUrls] = useLocalStorage('baseUrls', {})
-  const [selectedModel, setSelectedModel] = useLocalStorage('selectedModel', 'freellm/TinyLlama/TinyLlama-1.1B-Chat-v1.0')
+  const [selectedModel, setSelectedModel] = useLocalStorage('selectedModel', 'hf/rwkv7-g1a4-2.9b-20251118-ctx8192')
   const [isGenerating, setIsGenerating] = useState(false)
   const [isProcessingOCR, setIsProcessingOCR] = useState(false)
   const [error, setError] = useState(null)
@@ -65,7 +65,7 @@ export const useChat = () => {
     }
 
     const currentConvo = conversations.find(c => c.id === convoId) || { messages: [] }
-    
+
     // Add user message
     const userMessage = {
       id: generateId(),
@@ -73,14 +73,14 @@ export const useChat = () => {
       content: content.trim(),
       timestamp: Date.now(),
     }
-    
+
     const updatedMessages = [...currentConvo.messages, userMessage]
-    
+
     // Generate title from first message
-    const title = currentConvo.messages.length === 0 
+    const title = currentConvo.messages.length === 0
       ? content.slice(0, 30) + (content.length > 30 ? '...' : '')
       : null
-    
+
     updateMessages(convoId, updatedMessages, title)
     setError(null)
     setIsGenerating(true)
@@ -92,7 +92,7 @@ export const useChat = () => {
       content: '',
       timestamp: Date.now(),
     }
-    
+
     updateMessages(convoId, [...updatedMessages, assistantMessage], title)
 
     try {
@@ -103,7 +103,7 @@ export const useChat = () => {
       }))
 
       let fullContent = ''
-      
+
       const response = await sendChatMessage(apiMessages, selectedModel, apiKeys, {
         stream: streamOutput,
         baseUrls,
@@ -140,8 +140,8 @@ export const useChat = () => {
         const msgs = [...c.messages]
         const lastIdx = msgs.length - 1
         if (msgs[lastIdx]?.role === 'assistant') {
-          msgs[lastIdx] = { 
-            ...msgs[lastIdx], 
+          msgs[lastIdx] = {
+            ...msgs[lastIdx],
             content: `Error: ${err.message}`,
             isError: true,
           }
@@ -157,7 +157,7 @@ export const useChat = () => {
   const processImage = useCallback(async (file) => {
     setIsProcessingOCR(true)
     setError(null)
-    
+
     try {
       const text = await processImageOCR(file)
       return text
