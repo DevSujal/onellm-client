@@ -1,5 +1,8 @@
 import { memo } from 'react'
-import { UserIcon, BotIcon, CopyIcon, RefreshIcon } from '../Icons'
+import ReactMarkdown from 'react-markdown'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { UserIcon, BotIcon, CopyIcon } from '../Icons'
 import './Message.css'
 
 const Message = memo(({ message, isGenerating }) => {
@@ -9,38 +12,152 @@ const Message = memo(({ message, isGenerating }) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content)
   }
+
+  const handleCopyCode = (code) => {
+    navigator.clipboard.writeText(code)
+  }
   
-  // Format message content (simple markdown-like formatting)
-  const formatContent = (content) => {
-    if (!content) return null
-    
-    // Split by code blocks
-    const parts = content.split(/(```[\s\S]*?```)/g)
-    
-    return parts.map((part, i) => {
-      if (part.startsWith('```')) {
-        const match = part.match(/```(\w+)?\n?([\s\S]*?)```/)
-        const lang = match?.[1] || ''
-        const code = match?.[2] || part.slice(3, -3)
+  // Get display content (remove [Image text]: ... for display when image is present)
+  const getDisplayContent = (content) => {
+    if (!content) return ''
+    // If message has an image, remove the OCR text for cleaner display
+    if (message.image) {
+      // Remove [Image text]: and everything after it, keeping user's text before it
+      let cleaned = content.replace(/\n?\n?\[Image text\]:[\s\S]*$/g, '').trim()
+      return cleaned
+    }
+    return content
+  }
+
+  // Custom components for react-markdown
+  const markdownComponents = {
+    // Code blocks with syntax highlighting
+    code({ node, inline, className, children, ...props }) {
+      const match = /language-(\w+)/.exec(className || '')
+      const codeString = String(children).replace(/\n$/, '')
+      
+      if (!inline && match) {
         return (
-          <div key={i} className="code-block">
-            {lang && <span className="code-lang">{lang}</span>}
-            <pre><code>{code.trim()}</code></pre>
+          <div className="code-block">
+            <div className="code-header">
+              <span className="code-lang">{match[1]}</span>
+              <button 
+                className="code-copy-btn" 
+                onClick={() => handleCopyCode(codeString)}
+                title="Copy code"
+              >
+                <CopyIcon />
+              </button>
+            </div>
+            <SyntaxHighlighter
+              style={oneDark}
+              language={match[1]}
+              PreTag="div"
+              customStyle={{
+                margin: 0,
+                borderRadius: '0 0 12px 12px',
+                background: 'transparent',
+              }}
+              {...props}
+            >
+              {codeString}
+            </SyntaxHighlighter>
+          </div>
+        )
+      } else if (!inline) {
+        return (
+          <div className="code-block">
+            <div className="code-header">
+              <span className="code-lang">code</span>
+              <button 
+                className="code-copy-btn" 
+                onClick={() => handleCopyCode(codeString)}
+                title="Copy code"
+              >
+                <CopyIcon />
+              </button>
+            </div>
+            <pre className="code-pre">
+              <code {...props}>{children}</code>
+            </pre>
           </div>
         )
       }
       
-      // Format inline code
-      const withInlineCode = part.split(/(`[^`]+`)/g).map((segment, j) => {
-        if (segment.startsWith('`') && segment.endsWith('`')) {
-          return <code key={j} className="inline-code">{segment.slice(1, -1)}</code>
-        }
-        return segment
-      })
-      
-      return <span key={i}>{withInlineCode}</span>
-    })
+      return <code className="inline-code" {...props}>{children}</code>
+    },
+    // Paragraphs
+    p({ children }) {
+      return <p className="markdown-p">{children}</p>
+    },
+    // Lists
+    ul({ children }) {
+      return <ul className="markdown-ul">{children}</ul>
+    },
+    ol({ children }) {
+      return <ol className="markdown-ol">{children}</ol>
+    },
+    li({ children }) {
+      return <li className="markdown-li">{children}</li>
+    },
+    // Headings
+    h1({ children }) {
+      return <h1 className="markdown-h1">{children}</h1>
+    },
+    h2({ children }) {
+      return <h2 className="markdown-h2">{children}</h2>
+    },
+    h3({ children }) {
+      return <h3 className="markdown-h3">{children}</h3>
+    },
+    h4({ children }) {
+      return <h4 className="markdown-h4">{children}</h4>
+    },
+    // Blockquotes
+    blockquote({ children }) {
+      return <blockquote className="markdown-blockquote">{children}</blockquote>
+    },
+    // Links
+    a({ href, children }) {
+      return (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="markdown-link">
+          {children}
+        </a>
+      )
+    },
+    // Bold and italic are handled automatically by react-markdown
+    strong({ children }) {
+      return <strong className="markdown-strong">{children}</strong>
+    },
+    em({ children }) {
+      return <em className="markdown-em">{children}</em>
+    },
+    // Horizontal rule
+    hr() {
+      return <hr className="markdown-hr" />
+    },
+    // Tables
+    table({ children }) {
+      return <table className="markdown-table">{children}</table>
+    },
+    thead({ children }) {
+      return <thead className="markdown-thead">{children}</thead>
+    },
+    tbody({ children }) {
+      return <tbody className="markdown-tbody">{children}</tbody>
+    },
+    tr({ children }) {
+      return <tr className="markdown-tr">{children}</tr>
+    },
+    th({ children }) {
+      return <th className="markdown-th">{children}</th>
+    },
+    td({ children }) {
+      return <td className="markdown-td">{children}</td>
+    },
   }
+
+  const displayContent = getDisplayContent(message.content)
 
   return (
     <div className={`message ${isUser ? 'user' : 'assistant'} ${message.isError ? 'error' : ''}`}>
@@ -61,7 +178,21 @@ const Message = memo(({ message, isGenerating }) => {
               <span></span>
             </div>
           ) : (
-            formatContent(message.content)
+            <>
+              {/* Show image preview if message has an image */}
+              {message.image && (
+                <div className="message-image">
+                  <img src={message.image.preview} alt={message.image.name || 'Uploaded image'} />
+                </div>
+              )}
+              {displayContent && (
+                <div className="markdown-content">
+                  <ReactMarkdown components={markdownComponents}>
+                    {displayContent}
+                  </ReactMarkdown>
+                </div>
+              )}
+            </>
           )}
         </div>
         

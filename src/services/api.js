@@ -81,7 +81,7 @@ export const checkHealth = async () => {
 
 // Send a chat completion request to OneLLM
 export const sendChatMessage = async (messages, model, apiKeys, options = {}) => {
-  const { temperature = 0.7, maxTokens = 2048, stream = false, onChunk, baseUrls = {} } = options
+  const { temperature = 0.7, maxTokens = 1000000, stream = false, onChunk, baseUrls = {} } = options
 
   // Get the required API key for this model
   const keyName = getRequiredKeyForModel(model)
@@ -160,7 +160,6 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
     return { content: '' } // Content handled via onChunk
   } else {
 
-    console.log(body)
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -177,7 +176,6 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
 
     
     const data = await response.json()
-    console.log(data)
     return data
   }
 }

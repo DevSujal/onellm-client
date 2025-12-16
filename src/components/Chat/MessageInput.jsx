@@ -11,17 +11,31 @@ const MessageInput = ({
 }) => {
   const [input, setInput] = useState('')
   const [uploadedImage, setUploadedImage] = useState(null)
+  const [ocrText, setOcrText] = useState('') // Store OCR text separately
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef(null)
   const textareaRef = useRef(null)
   
   const handleSubmit = (e) => {
     e?.preventDefault()
-    if (!input.trim() || isGenerating || disabled) return
+    if ((!input.trim() && !ocrText) || isGenerating || disabled) return
     
-    onSend(input)
+    // Combine user input with OCR text for backend
+    let fullContent = input.trim()
+    if (ocrText) {
+      fullContent = fullContent + (fullContent ? '\n\n' : '') + `[Image text]: ${ocrText}`
+    }
+    
+    // Pass image data along with text for display purposes
+    const imageData = uploadedImage ? {
+      preview: uploadedImage.preview,
+      name: uploadedImage.name,
+    } : null
+    
+    onSend(fullContent, imageData)
     setInput('')
     setUploadedImage(null)
+    setOcrText('')
     
     // Reset textarea height
     if (textareaRef.current) {
@@ -48,6 +62,11 @@ const MessageInput = ({
   const handleFileSelect = async (file) => {
     if (!file || !file.type.startsWith('image/')) return
     
+    // Reset file input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+    
     setUploadedImage({
       file,
       preview: URL.createObjectURL(file),
@@ -58,7 +77,7 @@ const MessageInput = ({
     try {
       const text = await onImageUpload(file)
       if (text) {
-        setInput(prev => prev + (prev ? '\n\n' : '') + `[Image text]: ${text}`)
+        setOcrText(text) // Store OCR text separately, don't show in input
       }
     } catch (err) {
       console.error('OCR failed:', err)
@@ -87,6 +106,11 @@ const MessageInput = ({
       URL.revokeObjectURL(uploadedImage.preview)
     }
     setUploadedImage(null)
+    setOcrText('') // Clear OCR text when image is removed
+    // Reset file input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   return (

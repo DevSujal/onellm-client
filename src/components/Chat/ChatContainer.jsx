@@ -21,7 +21,7 @@ const ChatContainer = ({
   }, [messages])
 
   const handleSuggestionClick = (text) => {
-    onSendMessage(text)
+    onSendMessage(text, null)
   }
 
   return (
