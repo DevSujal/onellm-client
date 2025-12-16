@@ -12,13 +12,13 @@ export const fetchProviders = async () => {
 // Fetch models for a specific provider
 export const fetchModelsForProvider = async (provider, apiKey = null) => {
   const providerInfo = PROVIDERS[provider]
-  
+
   // Build URL with API key if provided
   let url = `${ONELLM_API_URL}/models/${provider}`
   if (apiKey) {
     url += `?apiKey=${encodeURIComponent(apiKey)}`
   }
-  
+
   try {
     const response = await fetch(url)
     if (!response.ok) {
@@ -28,7 +28,7 @@ export const fetchModelsForProvider = async (provider, apiKey = null) => {
     const data = await response.json()
     // Normalize the response - API may return { models: [...] } or just [...]
     const models = data.models || data || []
-    
+
     // Map to our format
     return models.map(model => ({
       id: typeof model === 'string' ? `${provider}/${model}` : (model.id || `${provider}/${model.name}`),
@@ -47,15 +47,15 @@ export const fetchModelsForProvider = async (provider, apiKey = null) => {
 export const fetchAllModels = async (apiKeys = {}) => {
   const providersResponse = await fetchProviders()
   const providerList = providersResponse?.providers || Object.keys(PROVIDERS)
-  
+
   const allModels = []
-  
+
   // Fetch models for each provider in parallel
   const fetchPromises = providerList.map(async (provider) => {
     const providerInfo = PROVIDERS[provider]
     const apiKey = providerInfo?.keyName ? apiKeys[providerInfo.keyName] : null
     const defaultKey = providerInfo?.defaultApiKey
-    
+
     // For free providers or providers with API keys, fetch models
     if (!providerInfo?.requiresKey || apiKey || defaultKey) {
       const models = await fetchModelsForProvider(provider, apiKey || defaultKey)
@@ -63,10 +63,10 @@ export const fetchAllModels = async (apiKeys = {}) => {
     }
     return []
   })
-  
+
   const results = await Promise.all(fetchPromises)
   results.forEach(models => allModels.push(...models))
-  
+
   return allModels
 }
 
@@ -145,7 +145,7 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
         if (line.startsWith('data: ')) {
           const dataStr = line.slice(6)
           if (dataStr === '[DONE]') continue
-          
+
           try {
             const data = JSON.parse(dataStr)
             if (data.content && onChunk) {
@@ -174,7 +174,7 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
       throw new Error(error.error || error.message || `HTTP ${response.status}`)
     }
 
-    
+
     const data = await response.json()
     return data
   }
@@ -212,3 +212,37 @@ export const processImageOCR = async (file) => {
   const text = data.ParsedResults?.[0]?.ParsedText || ''
   return text.trim()
 }
+
+// Search with Perplexity via custom proxy API (no API key needed)
+export const searchWithPerplexity = async (query) => {
+  const response = await fetch('https://6940fc870015a23b9a98.fra.appwrite.run', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: query,
+      max_results: 2,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.error?.message || `Search failed: ${response.status}`)
+  }
+
+  const data = await response.json()
+
+  // Format search results into a readable context
+  const results = data.results || []
+  const formattedResults = results.map((result, index) =>
+    `[${index + 1}] ${result.title}\nURL: ${result.url}\n${result.snippet}`
+  ).join('\n\n')
+
+  return {
+    content: formattedResults,
+    results: results, // Raw results for potential additional processing
+    images: [], // Search API doesn't return images
+  }
+}
+

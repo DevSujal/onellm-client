@@ -11,7 +11,12 @@ const ChatContainer = ({
   error,
   onSendMessage, 
   onImageUpload,
-  disabled 
+  disabled,
+  // Toggle props for mobile
+  streamOutput,
+  setStreamOutput,
+  searchEnabled,
+  setSearchEnabled,
 }) => {
   const messagesEndRef = useRef(null)
   
@@ -49,6 +54,33 @@ const ChatContainer = ({
         </div>
       )}
       
+      {/* Mobile toggle bar - only visible on mobile */}
+      <div className="mobile-toggle-bar">
+        <div className="mobile-toggle">
+          <label className="switch">
+            <input 
+              type="checkbox" 
+              checked={streamOutput}
+              onChange={(e) => setStreamOutput(e.target.checked)}
+            />
+            <span className="slider round"></span>
+          </label>
+          <span className="mobile-toggle-label">Stream</span>
+        </div>
+        
+        <div className="mobile-toggle">
+          <label className="switch">
+            <input 
+              type="checkbox" 
+              checked={searchEnabled}
+              onChange={(e) => setSearchEnabled(e.target.checked)}
+            />
+            <span className="slider round"></span>
+          </label>
+          <span className="mobile-toggle-label">Search</span>
+        </div>
+      </div>
+      
       <MessageInput
         onSend={onSendMessage}
         onImageUpload={onImageUpload}
@@ -61,3 +93,4 @@ const ChatContainer = ({
 }
 
 export default ChatContainer
+

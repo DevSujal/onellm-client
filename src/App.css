@@ -59,10 +59,15 @@ body {
 }
 
 .header-left,
-.header-right {
+.header-right,
+.header-toggles {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.header-toggles {
+  gap: 8px;
 }
 
 @keyframes headerSlideDown {
@@ -180,6 +185,7 @@ body {
   .app-header {
     padding: 12px 16px;
     gap: 8px;
+    flex-wrap: wrap;
   }
   
   .app-title {
@@ -188,8 +194,14 @@ body {
   
   .header-left {
     flex: 1;
-    gap: 8px;
-    overflow: hidden;
+    gap: 6px;
+    min-width: 0;
+  }
+  
+  .header-toggles {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
   }
   
   .menu-btn {
@@ -197,12 +209,14 @@ body {
     flex-shrink: 0;
   }
   
-  .stream-toggle {
-    margin-left: 8px;
+  .stream-toggle,
+  .search-toggle {
+    margin-left: 0;
     flex-shrink: 0;
   }
   
-  .stream-label {
+  .stream-label,
+  .search-label {
     font-size: 0.75rem;
   }
   
@@ -214,17 +228,35 @@ body {
     padding: 10px;
     flex-shrink: 0;
   }
+  
+  .header-right {
+    flex-shrink: 0;
+  }
+  
+  /* Hide header toggles on mobile - they appear above input now */
+  .header-toggles {
+    display: none;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .app-header {
+    padding: 10px 12px;
+  }
 }
 
 /* Toggle Switch */
-.stream-toggle {
+.stream-toggle,
+.search-toggle {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-left: 12px;
 }
 
-.stream-label {
+.stream-label,
+.search-label {
   font-size: 0.85rem;
   color: var(--text-secondary);
   font-weight: 500;

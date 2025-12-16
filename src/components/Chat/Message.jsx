@@ -180,6 +180,29 @@ const Message = memo(({ message, isGenerating }) => {
             </div>
           ) : (
             <>
+              {/* Show search result images if available */}
+              {!isUser && message.searchImages && message.searchImages.length > 0 && (
+                <div className="search-images">
+                  {message.searchImages.map((imageUrl, index) => (
+                    <a 
+                      key={index} 
+                      href={imageUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="search-image-link"
+                    >
+                      <img 
+                        src={imageUrl} 
+                        alt={`Search result ${index + 1}`} 
+                        className="search-image"
+                        onError={(e) => {
+                          e.target.style.display = 'none'
+                        }}
+                      />
+                    </a>
+                  ))}
+                </div>
+              )}
               {/* Show image preview if message has an image */}
               {message.image && (
                 <div className="message-image">

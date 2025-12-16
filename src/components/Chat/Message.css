@@ -150,6 +150,43 @@
   }
 }
 
+/* Search result images */
+.search-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  animation: imageSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.search-image-link {
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.search-image-link:hover {
+  transform: translateY(-3px) scale(1.02);
+  border-color: var(--accent-color);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+}
+
+.search-image {
+  width: 140px;
+  height: 95px;
+  object-fit: cover;
+  display: block;
+  background: rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.search-image-link:hover .search-image {
+  transform: scale(1.05);
+}
+
 @keyframes textFadeIn {
   from {
     opacity: 0;
@@ -256,12 +293,12 @@
 
 /* Markdown content container */
 .markdown-content {
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 /* Markdown paragraphs */
 .markdown-p {
-  margin: 0 0 16px 0;
+  margin: 0 0 4px 0;
 }
 
 .markdown-p:last-child {
@@ -272,43 +309,43 @@
 .markdown-h1 {
   font-size: 1.75rem;
   font-weight: 700;
-  margin: 24px 0 16px 0;
+  margin: 10px 0 4px 0;
   color: var(--text-primary);
   border-bottom: 2px solid rgba(99, 102, 241, 0.3);
-  padding-bottom: 8px;
+  padding-bottom: 4px;
 }
 
 .markdown-h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  margin: 20px 0 12px 0;
+  margin: 8px 0 4px 0;
   color: var(--text-primary);
 }
 
 .markdown-h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  margin: 16px 0 10px 0;
+  margin: 6px 0 2px 0;
   color: var(--text-primary);
 }
 
 .markdown-h4 {
   font-size: 1.1rem;
   font-weight: 600;
-  margin: 14px 0 8px 0;
+  margin: 4px 0 2px 0;
   color: var(--text-primary);
 }
 
 /* Markdown lists */
 .markdown-ul,
 .markdown-ol {
-  margin: 12px 0;
+  margin: 4px 0;
   padding-left: 24px;
 }
 
 .markdown-li {
-  margin: 8px 0;
-  line-height: 1.6;
+  margin: 1px 0;
+  line-height: 1.4;
 }
 
 .markdown-ul {
@@ -317,7 +354,7 @@
 
 .markdown-ul .markdown-ul {
   list-style-type: circle;
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 .markdown-ol {
@@ -365,7 +402,7 @@
 
 /* Markdown horizontal rule */
 .markdown-hr {
-  margin: 24px 0;
+  margin: 6px 0;
   border: none;
   height: 1px;
   background: linear-gradient(to right, transparent, rgba(99, 102, 241, 0.5), transparent);

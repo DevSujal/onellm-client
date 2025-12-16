@@ -20,9 +20,12 @@ function App() {
     selectedModel,
     isGenerating,
     isProcessingOCR,
+    isSearching,
     error,
     streamOutput,
+    searchEnabled,
     setStreamOutput,
+    setSearchEnabled,
     setActiveConvoId,
     createNewChat,
     deleteConversation,
@@ -47,11 +50,14 @@ function App() {
       
       <main className="main-content">
         <header className="app-header">
+
+          <div className='header-left'>
+
           <div className="header-left">
             <button 
               className="menu-btn"
               onClick={() => setSidebarOpen(true)}
-            >
+              >
               <MenuIcon />
             </button>
             
@@ -60,7 +66,9 @@ function App() {
               onSelectModel={setSelectedModel}
               apiKeys={apiKeys}
             />
-            
+          </div>
+          
+          <div className="header-toggles">
             <div className="stream-toggle">
               <label className="switch">
                 <input 
@@ -72,7 +80,20 @@ function App() {
               </label>
               <span className="stream-label">Stream</span>
             </div>
+            
+            <div className="search-toggle">
+              <label className="switch">
+                <input 
+                  type="checkbox" 
+                  checked={searchEnabled}
+                  onChange={(e) => setSearchEnabled(e.target.checked)}
+                />
+                <span className="slider round"></span>
+              </label>
+              <span className="search-label">Search</span>
+            </div>
           </div>
+    </div>
           
           <div className="header-right">
             <button 
@@ -92,6 +113,10 @@ function App() {
           error={error}
           onSendMessage={sendMessage}
           onImageUpload={processImage}
+          streamOutput={streamOutput}
+          setStreamOutput={setStreamOutput}
+          searchEnabled={searchEnabled}
+          setSearchEnabled={setSearchEnabled}
         />
       </main>
       
