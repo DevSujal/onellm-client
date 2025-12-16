@@ -131,20 +131,23 @@ export const useChat = () => {
       }
 
       // Prepare messages for API (without IDs and timestamps)
+      // Filter out error messages and empty content
       // If search context exists, append it to the last user message
-      const apiMessages = updatedMessages.map((m, idx) => {
-        // Append search context to the last user message
-        if (searchContext && m.role === 'user' && idx === updatedMessages.length - 1) {
+      const apiMessages = updatedMessages
+        .filter(m => m.content && !m.isError && !m.content.startsWith('Error:'))
+        .map((m, idx, arr) => {
+          // Append search context to the last user message
+          if (searchContext && m.role === 'user' && idx === arr.length - 1) {
+            return {
+              role: m.role,
+              content: `${m.content}\n\n---\nSearch Results:\n${searchContext}\n---\n\nBased on the search results above, please answer my question.`,
+            }
+          }
           return {
             role: m.role,
-            content: `${m.content}\n\n---\nSearch Results:\n${searchContext}\n---\n\nBased on the search results above, please answer my question.`,
+            content: m.content,
           }
-        }
-        return {
-          role: m.role,
-          content: m.content,
-        }
-      })
+        })
 
       let fullContent = ''
 

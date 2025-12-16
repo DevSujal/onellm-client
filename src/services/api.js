@@ -30,13 +30,25 @@ export const fetchModelsForProvider = async (provider, apiKey = null) => {
     const models = data.models || data || []
 
     // Map to our format
-    return models.map(model => ({
-      id: typeof model === 'string' ? `${provider}/${model}` : (model.id || `${provider}/${model.name}`),
-      name: typeof model === 'string' ? model : (model.name || model.id),
-      provider: provider,
-      description: model.description || '',
-      free: !providerInfo?.requiresKey,
-    }))
+    return models.map(model => {
+      // Determine the base model name
+      let modelName = typeof model === 'string' ? model : (model.name || model.id)
+
+      // Build the full ID with provider prefix
+      // If the model already has a provider prefix, use it as-is; otherwise add the prefix
+      let modelId = typeof model === 'string' ? model : (model.id || model.name)
+      if (!modelId.includes('/')) {
+        modelId = `${provider}/${modelId}`
+      }
+
+      return {
+        id: modelId,
+        name: modelName,
+        provider: provider,
+        description: model.description || '',
+        free: !providerInfo?.requiresKey,
+      }
+    })
   } catch (err) {
     console.error(`Failed to fetch models for ${provider}:`, err)
     return []
@@ -116,6 +128,7 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
   }
 
   if (stream) {
+
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -132,6 +145,7 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
+    let currentEventType = 'chunk' // Track event type (chunk or complete)
 
     while (true) {
       const { done, value } = await reader.read()
@@ -142,24 +156,64 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
       buffer = lines.pop()
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const dataStr = line.slice(6)
-          if (dataStr === '[DONE]') continue
+        if (!line.trim()) continue
 
-          try {
-            const data = JSON.parse(dataStr)
-            if (data.content && onChunk) {
-              onChunk(data.content)
-            }
-          } catch (e) {
-            console.error('Error parsing SSE data:', e)
+        // Track event type - skip complete events as they contain the full message
+        if (line.startsWith('event:')) {
+          currentEventType = line.slice(6).trim()
+          continue
+        }
+
+        // Skip data from 'complete' events (contains full content, would duplicate)
+        if (currentEventType === 'complete') continue
+
+        let dataStr = line
+
+        // Handle SSE format - strip data: prefix (with or without space)
+        if (line.startsWith('data:')) {
+          dataStr = line.slice(5) // Remove 'data:'
+          // Also handle if there's a space after data:
+          if (dataStr.startsWith(' ')) {
+            dataStr = dataStr.slice(1)
           }
+        }
+
+        if (dataStr === '[DONE]') continue
+
+        try {
+          const data = JSON.parse(dataStr)
+          if (data.content && onChunk) {
+            onChunk(data.content)
+          }
+        } catch (e) {
+          console.error('Error parsing stream data:', e, 'Line:', line)
         }
       }
     }
+
+    // Process any remaining data in buffer after stream ends
+    if (buffer.trim() && !buffer.startsWith('event:')) {
+      let dataStr = buffer
+      if (buffer.startsWith('data:')) {
+        dataStr = buffer.slice(5)
+        if (dataStr.startsWith(' ')) {
+          dataStr = dataStr.slice(1)
+        }
+      }
+      if (dataStr !== '[DONE]') {
+        try {
+          const data = JSON.parse(dataStr)
+          if (data.content && onChunk) {
+            onChunk(data.content)
+          }
+        } catch (e) {
+          console.error('Error parsing final buffer:', e, 'Buffer:', buffer)
+        }
+      }
+    }
+
     return { content: '' } // Content handled via onChunk
   } else {
-
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
