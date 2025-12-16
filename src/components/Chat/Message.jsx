@@ -36,6 +36,22 @@ const ResponseTimer = () => {
   )
 }
 
+// Thinking indicator component for chain-of-thought models
+const ThinkingIndicator = () => {
+  return (
+    <div className="thinking-indicator">
+      <div className="thinking-brain">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 2a9 9 0 0 0-9 9c0 3.6 2.4 6.6 5.7 7.7.3.1.6.2.9.3h4.8c.3-.1.6-.2.9-.3C18.6 17.6 21 14.6 21 11a9 9 0 0 0-9-9z"/>
+          <path d="M12 6v2M9 9c0-1.5 1.3-3 3-3s3 1.5 3 3-1.3 3-3 3"/>
+          <path d="M12 18v4M8 22h8"/>
+        </svg>
+      </div>
+      <span className="thinking-text">Thinking...</span>
+    </div>
+  )
+}
+
 const Message = memo(({ message, isGenerating }) => {
   const isUser = message.role === 'user'
   const isStreaming = !isUser && isGenerating && !message.content
@@ -48,17 +64,63 @@ const Message = memo(({ message, isGenerating }) => {
     navigator.clipboard.writeText(code)
   }
   
+  // Parse content to detect thinking blocks and extract actual response
+  const parseThinkingContent = (content) => {
+    if (!content) return { isThinking: false, hasResponse: false, responseContent: '' }
+    
+    // Check for <think> or <thinking> tags (common patterns)
+    const thinkPatterns = [
+      /<think>([\s\S]*?)<\/think>/gi,
+      /<thinking>([\s\S]*?)<\/thinking>/gi,
+    ]
+    
+    let cleanContent = content
+    let hasThinkingBlock = false
+    
+    // Remove all thinking blocks
+    for (const pattern of thinkPatterns) {
+      if (pattern.test(cleanContent)) {
+        hasThinkingBlock = true
+        cleanContent = cleanContent.replace(pattern, '')
+      }
+      // Reset regex lastIndex
+      pattern.lastIndex = 0
+    }
+    
+    // Check if content starts with <think> but hasn't closed yet (still thinking)
+    const unclosedThink = /<think>[\s\S]*$/i.test(content) && !/<\/think>/i.test(content)
+    const unclosedThinking = /<thinking>[\s\S]*$/i.test(content) && !/<\/thinking>/i.test(content)
+    const isActivelyThinking = unclosedThink || unclosedThinking
+    
+    // Trim the cleaned content
+    cleanContent = cleanContent.trim()
+    
+    return {
+      isThinking: isActivelyThinking,
+      hasThinkingBlock: hasThinkingBlock || isActivelyThinking,
+      hasResponse: cleanContent.length > 0,
+      responseContent: cleanContent
+    }
+  }
+  
   // Get display content (remove [Image text]: ... for display when image is present)
   const getDisplayContent = (content) => {
     if (!content) return ''
+    
+    // First, parse out thinking blocks
+    const { responseContent } = parseThinkingContent(content)
+    
     // If message has an image, remove the OCR text for cleaner display
     if (message.image) {
       // Remove [Image text]: and everything after it, keeping user's text before it
-      let cleaned = content.replace(/\n?\n?\[Image text\]:[\s\S]*$/g, '').trim()
+      let cleaned = responseContent.replace(/\n?\n?\[Image text\]:[\s\S]*$/g, '').trim()
       return cleaned
     }
-    return content
+    return responseContent
   }
+
+  // Check thinking status
+  const thinkingStatus = parseThinkingContent(message.content)
 
   // Custom components for react-markdown
   const markdownComponents = {
@@ -206,6 +268,10 @@ const Message = memo(({ message, isGenerating }) => {
             <ResponseTimer />
           ) : (
             <>
+              {/* Show thinking indicator when model is actively thinking */}
+              {!isUser && thinkingStatus.isThinking && !thinkingStatus.hasResponse && (
+                <ThinkingIndicator />
+              )}
               {/* Show search result images if available */}
               {!isUser && message.searchImages && message.searchImages.length > 0 && (
                 <div className="search-images">

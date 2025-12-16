@@ -1,4 +1,56 @@
-import { ONELLM_API_URL, getRequiredKeyForModel, modelRequiresKey, getDefaultApiKey, getDefaultBaseUrl, getMaxTokensForModel, PROVIDERS } from '../constants/models'
+import { ONELLM_API_URL, getRequiredKeyForModel, modelRequiresKey, getDefaultApiKey, getDefaultBaseUrl, getMaxTokensForModel, getContextWindowForModel, PROVIDERS } from '../constants/models'
+
+// Estimate token count using ~4 characters per token heuristic
+// This is a rough approximation that works reasonably for most languages
+const estimateTokens = (text) => Math.ceil((text || '').length / 4)
+
+// Estimate total tokens for an array of messages
+const estimateMessagesTokens = (messages) => {
+  return messages.reduce((total, msg) => {
+    // Add ~4 tokens overhead per message for role markup
+    return total + estimateTokens(msg.content) + 4
+  }, 0)
+}
+
+// Truncate messages to fit within context window
+// Preserves system message (if any) and most recent messages
+// Drops oldest non-system messages when over limit
+const truncateMessagesToFit = (messages, maxContextTokens, reserveForResponse = 2048) => {
+  const availableTokens = maxContextTokens - reserveForResponse
+
+  if (availableTokens <= 0) {
+    console.warn('Context window too small after reserving for response')
+    return messages.slice(-2) // Keep only last exchange
+  }
+
+  const totalTokens = estimateMessagesTokens(messages)
+
+  // If we're under the limit, return all messages
+  if (totalTokens <= availableTokens) {
+    return messages
+  }
+
+  console.log(`Truncating messages: ${totalTokens} tokens exceeds limit of ${availableTokens}`)
+
+  // Separate system message from other messages
+  const systemMessages = messages.filter(m => m.role === 'system')
+  const otherMessages = messages.filter(m => m.role !== 'system')
+
+  // Calculate tokens used by system messages
+  const systemTokens = estimateMessagesTokens(systemMessages)
+  const tokensForConversation = availableTokens - systemTokens
+
+  // Keep removing oldest messages until we fit
+  let truncatedMessages = [...otherMessages]
+  while (truncatedMessages.length > 1 && estimateMessagesTokens(truncatedMessages) > tokensForConversation) {
+    truncatedMessages.shift() // Remove oldest message
+  }
+
+  console.log(`Kept ${truncatedMessages.length} of ${otherMessages.length} conversation messages`)
+
+  // Combine system messages with truncated conversation
+  return [...systemMessages, ...truncatedMessages]
+}
 
 // Fetch supported providers
 export const fetchProviders = async () => {
@@ -97,6 +149,9 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
   const providerMaxTokens = getMaxTokensForModel(model)
   const { temperature = 0.7, maxTokens = providerMaxTokens, stream = false, onChunk, baseUrls = {} } = options
 
+  // Get context window limit for this model
+  const contextWindow = getContextWindowForModel(model)
+
   // Get the required API key for this model
   const keyName = getRequiredKeyForModel(model)
   const defaultApiKey = getDefaultApiKey(model)
@@ -113,13 +168,19 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
 
   const endpoint = stream ? `${ONELLM_API_URL}/chat/completions/stream` : `${ONELLM_API_URL}/chat/completions`
 
+  // Prepare messages for API (clean format)
+  const cleanMessages = messages.map(m => ({
+    role: m.role,
+    content: m.content,
+  }))
+
+  // Truncate messages to fit within context window (reserve tokens for response)
+  const truncatedMessages = truncateMessagesToFit(cleanMessages, contextWindow, maxTokens)
+
   const body = {
     apiKey: apiKey || undefined,
     model,
-    messages: messages.map(m => ({
-      role: m.role,
-      content: m.content,
-    })),
+    messages: truncatedMessages,
     temperature,
     maxTokens,
   }

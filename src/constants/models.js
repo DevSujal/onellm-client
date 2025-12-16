@@ -100,6 +100,23 @@ export const MAX_TOKENS = {
   rwkv: 1000000,           // RWKV models
 }
 
+// Context window limits (input tokens) per provider - used for message truncation
+export const CONTEXT_WINDOW = {
+  openai: 128000,       // GPT-4 Turbo
+  anthropic: 200000,    // Claude 3
+  google: 1000000,      // Gemini
+  groq: 32768,          // Groq hosted models
+  xai: 131072,          // Grok
+  openrouter: 32768,    // Safe default (varies by model)
+  azure: 128000,        // Azure OpenAI
+  cerebras: 8192,       // Cerebras models
+  copilot: 8192,        // GitHub Copilot
+  huggingface: 4096,    // Conservative for free tier
+  ollama: 8192,         // Ollama (varies by model)
+  freellm: 4096,        // FreeLLM lightweight models
+  rwkv: 8192,           // RWKV models (ctx8192)
+}
+
 // Available models grouped by provider
 export const FALLBACK_MODELS = [
   // Free models (no API key required)
@@ -174,7 +191,15 @@ export const getMaxTokensForModel = (modelId, fallback = 4096) => {
   return MAX_TOKENS[provider] || fallback
 }
 
+// Get context window limit for a model based on provider (for message truncation)
+export const getContextWindowForModel = (modelId, fallback = 4096) => {
+  const provider = getProviderFromModelId(modelId)
+  if (!provider) return fallback
+  return CONTEXT_WINDOW[provider] || fallback
+}
+
 // Get provider info
 export const getProviderInfo = (providerId) => {
   return PROVIDERS[providerId] || null
 }
+

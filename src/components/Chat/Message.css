@@ -539,6 +539,73 @@
   min-width: 50px;
 }
 
+/* Thinking Indicator */
+.thinking-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1));
+  border-radius: 14px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  width: fit-content;
+  animation: thinkingFadeIn 0.4s ease-out;
+}
+
+@keyframes thinkingFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.thinking-brain {
+  width: 24px;
+  height: 24px;
+  color: #a78bfa;
+  animation: thinkingPulse 2s ease-in-out infinite;
+}
+
+.thinking-brain svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes thinkingPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.thinking-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  background: linear-gradient(90deg, #a78bfa, #818cf8, #a78bfa);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: thinkingShimmer 2s linear infinite;
+}
+
+@keyframes thinkingShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 /* Message actions */
 .message-actions {
   display: flex;
