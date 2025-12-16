@@ -1,4 +1,4 @@
-import { ONELLM_API_URL, getRequiredKeyForModel, modelRequiresKey, getDefaultApiKey, getDefaultBaseUrl, PROVIDERS } from '../constants/models'
+import { ONELLM_API_URL, getRequiredKeyForModel, modelRequiresKey, getDefaultApiKey, getDefaultBaseUrl, getMaxTokensForModel, PROVIDERS } from '../constants/models'
 
 // Fetch supported providers
 export const fetchProviders = async () => {
@@ -93,7 +93,9 @@ export const checkHealth = async () => {
 
 // Send a chat completion request to OneLLM
 export const sendChatMessage = async (messages, model, apiKeys, options = {}) => {
-  const { temperature = 0.7, maxTokens = 32768, stream = false, onChunk, baseUrls = {} } = options
+  // Get provider-specific maxTokens, with user override capability
+  const providerMaxTokens = getMaxTokensForModel(model)
+  const { temperature = 0.7, maxTokens = providerMaxTokens, stream = false, onChunk, baseUrls = {} } = options
 
   // Get the required API key for this model
   const keyName = getRequiredKeyForModel(model)

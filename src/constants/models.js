@@ -83,6 +83,23 @@ export const PROVIDERS = {
   },
 }
 
+// Max tokens supported by each provider (conservative limits that work for all models)
+export const MAX_TOKENS = {
+  openai: 16384,        // GPT-4 Turbo supports up to 128k, but 16k is safe default
+  anthropic: 8192,      // Claude models support various limits
+  google: 1000000,         // Gemini models
+  groq: 8192,           // Groq hosted models
+  xai: 4096,            // Grok models
+  openrouter: 16384,    // Depends on model, using safe default
+  azure: 16384,         // Azure OpenAI
+  cerebras: 1000000,       // Cerebras models
+  copilot: 4096,        // GitHub Copilot
+  huggingface: 8192,    // HuggingFace - conservative for free tier
+  ollama: 1000000,         // Ollama local models
+  freellm: 1000000,        // FreeLLM lightweight models
+  rwkv: 1000000,           // RWKV models
+}
+
 // Available models grouped by provider
 export const FALLBACK_MODELS = [
   // Free models (no API key required)
@@ -148,6 +165,13 @@ export const getDefaultBaseUrl = (modelId) => {
   const provider = getProviderFromModelId(modelId)
   if (!provider) return null
   return PROVIDERS[provider]?.defaultBaseUrl || null
+}
+
+// Get max tokens for a model based on provider
+export const getMaxTokensForModel = (modelId, fallback = 4096) => {
+  const provider = getProviderFromModelId(modelId)
+  if (!provider) return fallback
+  return MAX_TOKENS[provider] || fallback
 }
 
 // Get provider info
