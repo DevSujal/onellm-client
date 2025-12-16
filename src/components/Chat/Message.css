@@ -492,6 +492,53 @@
   }
 }
 
+/* Response Timer */
+.response-timer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.08));
+  border-radius: 12px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  width: fit-content;
+  animation: timerFadeIn 0.3s ease-out;
+}
+
+@keyframes timerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.timer-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: timerSpin 1s linear infinite;
+}
+
+@keyframes timerSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.timer-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  font-variant-numeric: tabular-nums;
+  min-width: 50px;
+}
+
 /* Message actions */
 .message-actions {
   display: flex;

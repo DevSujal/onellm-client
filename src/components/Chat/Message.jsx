@@ -1,10 +1,40 @@
-import { memo } from 'react'
+import { memo, useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { UserIcon, BotIcon, CopyIcon } from '../Icons'
 import './Message.css'
+
+// Timer component for showing elapsed time while waiting for response
+const ResponseTimer = () => {
+  const [elapsed, setElapsed] = useState(0)
+  
+  useEffect(() => {
+    const startTime = Date.now()
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTime) / 100) / 10)
+    }, 100)
+    
+    return () => clearInterval(interval)
+  }, [])
+  
+  const formatTime = (seconds) => {
+    if (seconds < 60) {
+      return `${seconds.toFixed(1)}s`
+    }
+    const mins = Math.floor(seconds / 60)
+    const secs = (seconds % 60).toFixed(1)
+    return `${mins}m ${secs}s`
+  }
+  
+  return (
+    <div className="response-timer">
+      <div className="timer-spinner"></div>
+      <span className="timer-text">{formatTime(elapsed)}</span>
+    </div>
+  )
+}
 
 const Message = memo(({ message, isGenerating }) => {
   const isUser = message.role === 'user'
@@ -173,11 +203,7 @@ const Message = memo(({ message, isGenerating }) => {
         
         <div className="message-body">
           {isStreaming ? (
-            <div className="typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
+            <ResponseTimer />
           ) : (
             <>
               {/* Show search result images if available */}
