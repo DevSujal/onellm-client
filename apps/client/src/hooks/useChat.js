@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { sendChatMessage, processImageOCR, searchWithPerplexity } from '../services/api'
 
 // In production, API is on same origin. In development, use localhost:3001
@@ -27,8 +27,17 @@ const authFetch = async (url, options = {}) => {
 // Custom hook for chat functionality
 export const useChat = () => {
   const [conversations, setConversations] = useState([])
+  const conversationsRef = useRef([]) // Ref to always have latest conversations
   const [activeConvoId, setActiveConvoId] = useState(null)
-  const [apiKeys, setApiKeys] = useState({})
+  // API keys are stored in localStorage for security (not in database)
+  const [apiKeys, setApiKeys] = useState(() => {
+    try {
+      const stored = localStorage.getItem('apiKeys')
+      return stored ? JSON.parse(stored) : {}
+    } catch {
+      return {}
+    }
+  })
   const [baseUrls, setBaseUrls] = useState({})
   const [selectedModel, setSelectedModel] = useState('hf/rwkv7-g1a4-2.9b-20251118-ctx8192')
   const [isGenerating, setIsGenerating] = useState(false)
@@ -38,6 +47,11 @@ export const useChat = () => {
   const [streamOutput, setStreamOutput] = useState(true)
   const [searchEnabled, setSearchEnabled] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    conversationsRef.current = conversations
+  }, [conversations])
 
   // Fetch conversations and settings from API on mount
   useEffect(() => {
@@ -60,13 +74,12 @@ export const useChat = () => {
           }
         }
 
-        // Fetch settings
+        // Fetch settings (apiKeys are stored in localStorage, not database)
         const settingsRes = await authFetch(`${API_URL}/api/user/settings`)
         if (settingsRes.ok) {
           const settingsData = await settingsRes.json()
           const settings = settingsData.settings
           if (settings) {
-            setApiKeys(settings.apiKeys || {})
             setBaseUrls(settings.baseUrls || {})
             setSelectedModel(settings.selectedModel || 'hf/rwkv7-g1a4-2.9b-20251118-ctx8192')
             setStreamOutput(settings.streamOutput ?? true)
@@ -286,23 +299,6 @@ export const useChat = () => {
         }))
       }
 
-      // Sync to database after completion
-      const finalConvo = conversations.find(c => c.id === convoId)
-      if (finalConvo) {
-        setTimeout(async () => {
-          const currentConvoState = conversations.find(c => c.id === convoId)
-          if (currentConvoState) {
-            await authFetch(`${API_URL}/api/conversations/${convoId}/sync`, {
-              method: 'POST',
-              body: JSON.stringify({
-                title: title || currentConvoState.title,
-                messages: currentConvoState.messages
-              }),
-            })
-          }
-        }, 500)
-      }
-
     } catch (err) {
       setError(err.message)
       setConversations(prev => prev.map(c => {
@@ -320,6 +316,34 @@ export const useChat = () => {
       }))
     } finally {
       setIsGenerating(false)
+
+      // Sync to database - use ref to get latest state
+      setTimeout(() => {
+        const currentConvoState = conversationsRef.current.find(c => c.id === convoId)
+        if (currentConvoState) {
+          // console.log('Syncing messages to DB:', {
+          //   convoId,
+          //   title: title || currentConvoState.title,
+          //   messageCount: currentConvoState.messages.length,
+          //   messages: currentConvoState.messages
+          // })
+          authFetch(`${API_URL}/api/conversations/${convoId}/sync`, {
+            method: 'POST',
+            body: JSON.stringify({
+              title: title || currentConvoState.title,
+              messages: currentConvoState.messages
+            }),
+          })
+            .then(res => {
+              // console.log('Sync response status:', res.status)
+              return res.json()
+            })
+            .then(data => console.log('Sync response data:', data))
+            .catch(err => console.error('Failed to sync messages:', err))
+        } else {
+          console.error('Could not find conversation for sync:', convoId)
+        }
+      }, 500)
     }
   }, [activeConvoId, conversations, selectedModel, apiKeys, baseUrls, isGenerating, createNewChat, streamOutput, searchEnabled])
 
@@ -339,14 +363,19 @@ export const useChat = () => {
     }
   }, [])
 
-  // Update API key (with API persistence)
+  // Update API key (stored in localStorage, not database)
   const updateApiKey = useCallback((provider, key) => {
     setApiKeys(prev => {
       const updated = { ...prev, [provider]: key }
-      saveSettings({ apiKeys: updated })
+      // Store in localStorage for security
+      try {
+        localStorage.setItem('apiKeys', JSON.stringify(updated))
+      } catch (err) {
+        console.error('Failed to save API keys to localStorage:', err)
+      }
       return updated
     })
-  }, [saveSettings])
+  }, [])
 
   // Update base URL (with API persistence)
   const updateBaseUrl = useCallback((provider, url) => {
@@ -359,20 +388,26 @@ export const useChat = () => {
 
   // Update selected model (with API persistence)
   const handleSetSelectedModel = useCallback((model) => {
-    setSelectedModel(model)
-    saveSettings({ selectedModel: model })
+    setSelectedModel(prev => {
+      saveSettings({ selectedModel: model })
+      return model
+    })
   }, [saveSettings])
 
   // Update stream output (with API persistence)
   const handleSetStreamOutput = useCallback((value) => {
-    setStreamOutput(value)
-    saveSettings({ streamOutput: value })
+    setStreamOutput(prev => {
+      saveSettings({ streamOutput: value })
+      return value
+    })
   }, [saveSettings])
 
   // Update search enabled (with API persistence)
   const handleSetSearchEnabled = useCallback((value) => {
-    setSearchEnabled(value)
-    saveSettings({ searchEnabled: value })
+    setSearchEnabled(prev => {
+      saveSettings({ searchEnabled: value })
+      return value
+    })
   }, [saveSettings])
 
   // Clear error

@@ -90,13 +90,12 @@ router.put('/password', async (req, res) => {
     }
 })
 
-// Update settings
+// Update settings (apiKeys are stored client-side in localStorage, not in database)
 router.put('/settings', async (req, res) => {
     try {
-        const { apiKeys, baseUrls, selectedModel, streamOutput, searchEnabled } = req.body
+        const { baseUrls, selectedModel, streamOutput, searchEnabled } = req.body
 
         const updateData = {}
-        if (apiKeys !== undefined) updateData.apiKeys = apiKeys
         if (baseUrls !== undefined) updateData.baseUrls = baseUrls
         if (selectedModel !== undefined) updateData.selectedModel = selectedModel
         if (streamOutput !== undefined) updateData.streamOutput = streamOutput
