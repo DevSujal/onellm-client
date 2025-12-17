@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { sendChatMessage, processImageOCR, searchWithPerplexity } from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
 
 // In production, API is on same origin. In development, use localhost:3001
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001')
@@ -26,6 +27,7 @@ const authFetch = async (url, options = {}) => {
 
 // Custom hook for chat functionality
 export const useChat = () => {
+  const { token } = useAuth() // Get token from auth context to react to login/logout
   const [conversations, setConversations] = useState([])
   const conversationsRef = useRef([]) // Ref to always have latest conversations
   const [activeConvoId, setActiveConvoId] = useState(null)
@@ -53,11 +55,12 @@ export const useChat = () => {
     conversationsRef.current = conversations
   }, [conversations])
 
-  // Fetch conversations and settings from API on mount
+  // Fetch conversations and settings from API on mount or when token changes
   useEffect(() => {
     const fetchData = async () => {
-      const token = getToken()
       if (!token) {
+        setConversations([])
+        setActiveConvoId(null)
         setIsLoading(false)
         return
       }
@@ -94,7 +97,7 @@ export const useChat = () => {
     }
 
     fetchData()
-  }, [])
+  }, [token]) // Re-fetch when token changes (login/logout)
 
   // Get active conversation
   const activeConversation = conversations.find(c => c.id === activeConvoId) || null
