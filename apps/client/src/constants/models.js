@@ -95,9 +95,9 @@ export const MAX_TOKENS = {
   cerebras: 32768,       // Cerebras models
   copilot: 4096,        // GitHub Copilot
   huggingface: 8192,    // HuggingFace - conservative for free tier
-  ollama: 32768,         // Ollama local models
-  freellm: 32768,        // FreeLLM lightweight models
-  rwkv: 32768,           // RWKV models
+  ollama: 1000000,         // Ollama local models
+  freellm: 1000000,        // FreeLLM lightweight models
+  rwkv: 1000000,           // RWKV models
 }
 
 // Context window limits (input tokens) per provider - used for message truncation
