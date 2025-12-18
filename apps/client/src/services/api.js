@@ -16,7 +16,10 @@ const estimateMessagesTokens = (messages) => {
 // Preserves system message (if any) and most recent messages
 // Drops oldest non-system messages when over limit
 const truncateMessagesToFit = (messages, maxContextTokens, reserveForResponse = 2048) => {
-  const availableTokens = maxContextTokens - reserveForResponse
+  // Cap reserveForResponse to at most 50% of context window to ensure we always have room for input
+  const maxReserve = Math.floor(maxContextTokens * 0.5)
+  const actualReserve = Math.min(reserveForResponse, maxReserve)
+  const availableTokens = maxContextTokens - actualReserve
 
   if (availableTokens <= 0) {
     console.warn('Context window too small after reserving for response')
