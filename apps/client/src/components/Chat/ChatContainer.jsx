@@ -17,6 +17,8 @@ const ChatContainer = ({
   setStreamOutput,
   searchEnabled,
   setSearchEnabled,
+  searchWithPerplexityEnabled,
+  setSearchWithPerplexityEnabled,
 }) => {
   const messagesEndRef = useRef(null)
   
@@ -78,6 +80,18 @@ const ChatContainer = ({
             <span className="slider round"></span>
           </label>
           <span className="mobile-toggle-label">Search</span>
+        </div>
+        
+        <div className="mobile-toggle perplexity-toggle">
+          <label className="switch">
+            <input 
+              type="checkbox" 
+              checked={searchWithPerplexityEnabled}
+              onChange={(e) => setSearchWithPerplexityEnabled(e.target.checked)}
+            />
+            <span className="slider round perplexity"></span>
+          </label>
+          <span className="mobile-toggle-label perplexity-label">Perplexity</span>
         </div>
       </div>
       

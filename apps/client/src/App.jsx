@@ -29,8 +29,10 @@ function AppContent() {
     error,
     streamOutput,
     searchEnabled,
+    searchWithPerplexityEnabled,
     setStreamOutput,
     setSearchEnabled,
+    setSearchWithPerplexityEnabled,
     setActiveConvoId,
     createNewChat,
     deleteConversation,
@@ -112,6 +114,18 @@ function AppContent() {
               </label>
               <span className="search-label">Search</span>
             </div>
+            
+            <div className="search-toggle perplexity-toggle">
+              <label className="switch">
+                <input 
+                  type="checkbox" 
+                  checked={searchWithPerplexityEnabled}
+                  onChange={(e) => setSearchWithPerplexityEnabled(e.target.checked)}
+                />
+                <span className="slider round perplexity"></span>
+              </label>
+              <span className="search-label perplexity-label">Perplexity</span>
+            </div>
           </div>
     </div>
           
@@ -144,6 +158,8 @@ function AppContent() {
           setStreamOutput={setStreamOutput}
           searchEnabled={searchEnabled}
           setSearchEnabled={setSearchEnabled}
+          searchWithPerplexityEnabled={searchWithPerplexityEnabled}
+          setSearchWithPerplexityEnabled={setSearchWithPerplexityEnabled}
         />
       </main>
       

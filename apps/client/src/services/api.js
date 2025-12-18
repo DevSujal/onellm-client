@@ -150,7 +150,7 @@ export const checkHealth = async () => {
 export const sendChatMessage = async (messages, model, apiKeys, options = {}) => {
   // Get provider-specific maxTokens, with user override capability
   const providerMaxTokens = getMaxTokensForModel(model)
-  const { temperature = 0.7, maxTokens = providerMaxTokens, stream = false, onChunk, baseUrls = {} } = options
+  const { temperature = 0.7, maxTokens = providerMaxTokens, stream = false, onChunk, baseUrls = {}, search = false, searchResultCount } = options
 
   // Get context window limit for this model
   const contextWindow = getContextWindowForModel(model)
@@ -191,6 +191,14 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
   // Add baseUrl if provided
   if (baseUrl) {
     body.baseUrl = baseUrl
+  }
+
+  // Add search options if enabled
+  if (search) {
+    body.search = true
+    if (searchResultCount !== undefined) {
+      body.searchResultCount = searchResultCount
+    }
   }
 
 

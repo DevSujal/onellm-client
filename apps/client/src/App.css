@@ -316,6 +316,24 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+/* Perplexity Toggle - distinctive teal/turquoise color */
+.perplexity-toggle {
+  margin-left: 4px;
+}
+
+.perplexity-label {
+  color: #20b2aa !important;
+}
+
+input:checked + .slider.perplexity {
+  background-color: rgba(32, 178, 170, 0.2);
+  border-color: #20b2aa;
+}
+
+input:checked + .slider.perplexity:before {
+  background-color: #20b2aa;
+}
+
 /* Profile Button */
 .profile-btn {
   display: flex;

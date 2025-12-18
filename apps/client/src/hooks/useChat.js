@@ -48,6 +48,7 @@ export const useChat = () => {
   const [error, setError] = useState(null)
   const [streamOutput, setStreamOutput] = useState(true)
   const [searchEnabled, setSearchEnabled] = useState(false)
+  const [searchWithPerplexityEnabled, setSearchWithPerplexityEnabled] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   // Keep ref in sync with state
@@ -87,6 +88,7 @@ export const useChat = () => {
             setSelectedModel(settings.selectedModel || 'hf/rwkv7-g1a4-2.9b-20251118-ctx8192')
             setStreamOutput(settings.streamOutput ?? true)
             setSearchEnabled(settings.searchEnabled ?? false)
+            setSearchWithPerplexityEnabled(settings.searchWithPerplexityEnabled ?? false)
           }
         }
       } catch (err) {
@@ -231,8 +233,8 @@ export const useChat = () => {
       let searchContext = ''
       let searchImages = []
 
-      // If search is enabled, call Perplexity first
-      if (searchEnabled) {
+      // If Perplexity search is enabled, call Perplexity first
+      if (searchWithPerplexityEnabled) {
         setIsSearching(true)
         try {
           const searchResult = await searchWithPerplexity(content.trim())
@@ -276,6 +278,9 @@ export const useChat = () => {
       const response = await sendChatMessage(apiMessages, selectedModel, apiKeys, {
         stream: streamOutput,
         baseUrls,
+        // Pass search options when normal search is enabled
+        search: searchEnabled,
+        searchResultCount: searchEnabled ? 5 : undefined,
         onChunk: (chunk) => {
           fullContent += chunk
           setConversations(prev => prev.map(c => {
@@ -348,7 +353,7 @@ export const useChat = () => {
         }
       }, 500)
     }
-  }, [activeConvoId, conversations, selectedModel, apiKeys, baseUrls, isGenerating, createNewChat, streamOutput, searchEnabled])
+  }, [activeConvoId, conversations, selectedModel, apiKeys, baseUrls, isGenerating, createNewChat, streamOutput, searchEnabled, searchWithPerplexityEnabled])
 
   // Process image with OCR
   const processImage = useCallback(async (file) => {
@@ -405,12 +410,26 @@ export const useChat = () => {
     })
   }, [saveSettings])
 
-  // Update search enabled (with API persistence)
+  // Update search enabled (with API persistence) - mutually exclusive with Perplexity
   const handleSetSearchEnabled = useCallback((value) => {
-    setSearchEnabled(prev => {
+    if (value) {
+      setSearchWithPerplexityEnabled(false)
+      saveSettings({ searchEnabled: value, searchWithPerplexityEnabled: false })
+    } else {
       saveSettings({ searchEnabled: value })
-      return value
-    })
+    }
+    setSearchEnabled(value)
+  }, [saveSettings])
+
+  // Update Perplexity search enabled (with API persistence) - mutually exclusive with normal search
+  const handleSetSearchWithPerplexityEnabled = useCallback((value) => {
+    if (value) {
+      setSearchEnabled(false)
+      saveSettings({ searchWithPerplexityEnabled: value, searchEnabled: false })
+    } else {
+      saveSettings({ searchWithPerplexityEnabled: value })
+    }
+    setSearchWithPerplexityEnabled(value)
   }, [saveSettings])
 
   // Clear error
@@ -430,10 +449,12 @@ export const useChat = () => {
     error,
     streamOutput,
     searchEnabled,
+    searchWithPerplexityEnabled,
     isLoading,
     // Actions
     setStreamOutput: handleSetStreamOutput,
     setSearchEnabled: handleSetSearchEnabled,
+    setSearchWithPerplexityEnabled: handleSetSearchWithPerplexityEnabled,
     setActiveConvoId,
     createNewChat,
     deleteConversation,
