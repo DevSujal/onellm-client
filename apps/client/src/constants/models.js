@@ -51,11 +51,11 @@ export const PROVIDERS = {
     keyName: 'cerebras',
     keyPlaceholder: 'cbs-...',
   },
-  copilot: {
-    name: 'GitHub Copilot',
+  github: {
+    name: 'GitHub',
     requiresKey: true,
-    keyName: 'copilot',
-    keyPlaceholder: 'token',
+    keyName: 'github',
+    keyPlaceholder: 'github_pat_...',
   },
   huggingface: {
     name: 'Hugging Face',
@@ -93,7 +93,7 @@ export const MAX_TOKENS = {
   openrouter: 16384,    // Depends on model, using safe default
   azure: 16384,         // Azure OpenAI
   cerebras: 32768,       // Cerebras models
-  copilot: 4096,        // GitHub Copilot
+  github: 4096,         // GitHub
   huggingface: 8192,    // HuggingFace - conservative for free tier
   ollama: 1000000,         // Ollama local models
   freellm: 1000000,        // FreeLLM lightweight models
@@ -110,7 +110,7 @@ export const CONTEXT_WINDOW = {
   openrouter: 32768,    // Safe default (varies by model)
   azure: 128000,        // Azure OpenAI
   cerebras: 8192,       // Cerebras models
-  copilot: 8192,        // GitHub Copilot
+  github: 8192,         // GitHub
   huggingface: 4096,    // Conservative for free tier
   ollama: 8192,         // Ollama (varies by model)
   freellm: 4096,        // FreeLLM lightweight models
