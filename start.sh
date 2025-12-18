@@ -9,12 +9,12 @@ echo "🚀 OneLLM Production Deployment"
 echo "================================"
 
 # Install dependencies
-echo "📦 Installing dependencies..."
-npm install
+# echo "📦 Installing dependencies..."
+# npm install
 
 # Generate Prisma client
-echo "🔧 Generating Prisma client..."
-npm run db:generate
+# echo "🔧 Generating Prisma client..."
+# npm run db:generate
 
 # Build the frontend
 echo "🏗️  Building frontend..."

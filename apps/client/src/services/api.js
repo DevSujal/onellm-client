@@ -190,6 +190,7 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
     body.baseUrl = baseUrl
   }
 
+
   if (stream) {
 
     const response = await fetch(endpoint, {
@@ -199,6 +200,7 @@ export const sendChatMessage = async (messages, model, apiKeys, options = {}) =>
       },
       body: JSON.stringify(body),
     })
+
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Unknown error' }))

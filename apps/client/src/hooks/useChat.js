@@ -341,7 +341,7 @@ export const useChat = () => {
               // console.log('Sync response status:', res.status)
               return res.json()
             })
-            .then(data => console.log('Sync response data:', data))
+            .then(data => console.log('Sync response data:'))
             .catch(err => console.error('Failed to sync messages:', err))
         } else {
           console.error('Could not find conversation for sync:', convoId)

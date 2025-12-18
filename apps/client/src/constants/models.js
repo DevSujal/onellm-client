@@ -87,17 +87,17 @@ export const PROVIDERS = {
 export const MAX_TOKENS = {
   openai: 16384,        // GPT-4 Turbo supports up to 128k, but 16k is safe default
   anthropic: 8192,      // Claude models support various limits
-  google: 1000000,         // Gemini models
+  google: 8192,         // Gemini models
   groq: 8192,           // Groq hosted models
   xai: 4096,            // Grok models
   openrouter: 16384,    // Depends on model, using safe default
   azure: 16384,         // Azure OpenAI
-  cerebras: 1000000,       // Cerebras models
+  cerebras: 32768,       // Cerebras models
   copilot: 4096,        // GitHub Copilot
   huggingface: 8192,    // HuggingFace - conservative for free tier
-  ollama: 1000000,         // Ollama local models
-  freellm: 1000000,        // FreeLLM lightweight models
-  rwkv: 1000000,           // RWKV models
+  ollama: 32768,         // Ollama local models
+  freellm: 32768,        // FreeLLM lightweight models
+  rwkv: 32768,           // RWKV models
 }
 
 // Context window limits (input tokens) per provider - used for message truncation
