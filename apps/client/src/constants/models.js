@@ -1,5 +1,5 @@
 // OneLLM API Base URL
-export const ONELLM_API_URL = 'https://onellmweb.onrender.com/api'
+export const ONELLM_API_URL = import.meta.env.VITE_PUBLIC_ONELLM_API_URL
 
 // Provider definitions with their required API keys
 export const PROVIDERS = {
